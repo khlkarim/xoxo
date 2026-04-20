@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XO — GunDB Live</title>
+  <title>XOXO</title>
   <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,24 +20,34 @@
     }
 
     h1 {
-      font-size: 1.4rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: #8b949e;
-      margin-bottom: 0.5rem;
+      color: white;
+      margin-bottom: 1.6rem;
     }
 
-    #badge {
-      font-size: 0.85rem;
-      padding: 0.3rem 0.9rem;
-      border-radius: 999px;
-      margin-bottom: 1.6rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      transition: background 0.3s, color 0.3s;
+    #picker {
+      display: flex;
+      gap: 10px;
+      margin-top: 1.6rem;
     }
-    #badge.x  { background: #1a3a5c; color: #58a6ff; border: 1px solid #58a6ff44; }
-    #badge.o  { background: #3a1a2c; color: #f778ba; border: 1px solid #f778ba44; }
+
+    .pick-btn {
+      font-size: 1.1rem;
+      font-weight: 800;
+      padding: 0.4rem 1.4rem;
+      border-radius: 999px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      letter-spacing: 0.1em;
+      background: #161b22;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
+    }
+    .pick-btn:hover { transform: scale(1.06); }
+
+    .pick-btn.x { color: #58a6ff; border-color: #58a6ff55; }
+    .pick-btn.o { color: #f778ba; border-color: #f778ba55; }
+
+    .pick-btn.x.active { background: #1a3a5c; border-color: #58a6ff; }
+    .pick-btn.o.active { background: #3a1a2c; border-color: #f778ba; }
 
     #board {
       display: grid;
@@ -115,9 +125,7 @@
   </style>
 </head>
 <body>
-
-  <h1>XO · GunDB</h1>
-  <div id="badge" class="x">You are — X</div>
+  <h1>It's a tie!</h1>
 
   <div id="board">
     <div class="cell" data-i="0"></div>
@@ -131,23 +139,28 @@
     <div class="cell" data-i="8"></div>
   </div>
 
-  <div id="status">connecting to relay…</div>
-  <button id="reset">Reset board</button>
+  <div id="picker">
+    <button class="pick-btn x active" data-team="X">X</button>
+    <button class="pick-btn o"        data-team="O">O</button>
+  </div>
 
 <script>
   const db  = Gun(['https://gun.o8.is/gun']);
-  const grid = db.get('xo-demo-grid-v1');
-
-  const team  = Math.random() < 0.5 ? 'X' : 'O';
-  const badge = document.getElementById('badge');
-  badge.textContent = `You are — ${team}`;
-  badge.className   = team === 'X' ? 'x' : 'o';
 
   const state = Array(9).fill(null);
+  const grid = db.get('xo-demo-grid-v1');
 
-  const cells  = document.querySelectorAll('.cell');
-  const status = document.getElementById('#status' );
-  const statusEl = document.getElementById('status');
+  let team = 'X';
+  document.querySelectorAll('.pick-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      team = btn.dataset.team;
+      document.querySelectorAll('.pick-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  const h1 = document.querySelector('h1');
+  const cells = document.querySelectorAll('.cell');
 
   function renderCell(i, val) {
     const el = cells[i];
@@ -161,9 +174,40 @@
     cells[i].classList.add('pop');
   }
 
+  const LINES = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6],
+  ];
+
+  function checkWinner() {
+    cells.forEach(c => c.classList.remove('win-cell'));
+ 
+    for (const [a, b, c] of LINES) {
+      if (state[a] && state[a] === state[b] && state[a] === state[c]) {
+        const w = state[a];
+        h1.textContent = `Team ${w} is winning!`;
+        h1.style.color = w === 'X' ? '#58a6ff' : '#f778ba';
+        [a, b, c].forEach(i => cells[i].classList.add('win-cell'));
+        return;
+      }
+    }
+ 
+    const filled = state.filter(Boolean).length;
+    if (filled === 9) {
+      h1.textContent = "It's a tie!";
+      h1.style.color = '#8b949e';
+      return;
+    }
+ 
+    const xs = state.filter(v => v === 'X').length;
+    const os = state.filter(v => v === 'O').length;
+    if (xs > os) { h1.textContent = 'Team X is winning!'; h1.style.color = '#58a6ff'; }
+    else if (os > xs) { h1.textContent = 'Team O is winning!'; h1.style.color = '#f778ba'; }
+    else { h1.textContent = "It's a tie!"; h1.style.color = 'white'; }
+  }
+
   grid.on(data => {
-    statusEl.textContent = 'live — syncing via GunDB relay';
-    console.log('grid.on: ', data)
     for (let i = 0; i < 9; i++) {
       const key = 'c' + i;
       const incoming = data[key] === 'X' ? 'X' : data[key] === 'O' ? 'O' : null;
@@ -173,12 +217,12 @@
         if (incoming) pop(i);
       }
     }
+    checkWinner();
   });
 
   cells.forEach(el => {
     el.addEventListener('click', () => {
       const i = parseInt(el.dataset.i, 10);
-      // if (state[i]) return;             // cell already taken
 
       const key = 'c' + i;
       state[i] = team;
@@ -188,12 +232,7 @@
       grid.put({ [key]: team });
     });
   });
-
-  document.getElementById('reset').addEventListener('click', () => {
-    const patch = {};
-    for (let i = 0; i < 9; i++) patch['c' + i] = null;
-    grid.put(patch);
-  });
 </script>
-</body>
+
+  </body>
 </html>
