@@ -17,13 +17,90 @@
       background: #0d1117;
       font-family: 'Segoe UI', system-ui, sans-serif;
       color: #e6edf3;
+      padding: 2rem 1rem;
     }
 
+    /* ── Alias Modal Overlay ── */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    #alias-modal {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 2.2rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-width: 300px;
+      align-items: center;
+    }
+
+    #alias-modal h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #e6edf3;
+      letter-spacing: -0.01em;
+    }
+
+    #alias-modal p {
+      font-size: 0.82rem;
+      color: #8b949e;
+      text-align: center;
+    }
+
+    #alias-input {
+      width: 100%;
+      padding: 0.55rem 0.9rem;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #0d1117;
+      color: #e6edf3;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    #alias-input:focus {
+      border-color: #58a6ff;
+      box-shadow: 0 0 0 3px #58a6ff22;
+    }
+
+    #alias-btn {
+      width: 100%;
+      padding: 0.55rem;
+      background: #1a3a5c;
+      border: 1px solid #58a6ff88;
+      border-radius: 8px;
+      color: #58a6ff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    #alias-btn:hover {
+      background: #1e4570;
+      border-color: #58a6ff;
+    }
+
+    /* ── Game Title ── */
     h1 {
       color: white;
       margin-bottom: 1.6rem;
+      font-size: 1.5rem;
+      font-weight: 700;
     }
 
+    /* ── Team Picker ── */
     #picker {
       display: flex;
       gap: 10px;
@@ -41,14 +118,14 @@
       background: #161b22;
       transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.1s;
     }
-    .pick-btn:hover { transform: scale(1.06); }
 
+    .pick-btn:hover { transform: scale(1.06); }
     .pick-btn.x { color: #58a6ff; border-color: #58a6ff55; }
     .pick-btn.o { color: #f778ba; border-color: #f778ba55; }
-
     .pick-btn.x.active { background: #1a3a5c; border-color: #58a6ff; }
     .pick-btn.o.active { background: #3a1a2c; border-color: #f778ba; }
 
+    /* ── Board ── */
     #board {
       display: grid;
       grid-template-columns: repeat(3, 110px);
@@ -68,8 +145,6 @@
       cursor: pointer;
       transition: background 0.15s, transform 0.1s, border-color 0.15s;
       user-select: none;
-      position: relative;
-      overflow: hidden;
     }
 
     .cell:hover {
@@ -78,9 +153,7 @@
       transform: scale(1.03);
     }
 
-    .cell.taken {
-      cursor: default;
-    }
+    .cell.taken { cursor: default; }
     .cell.taken:hover {
       transform: none;
       background: #161b22;
@@ -90,15 +163,14 @@
     .cell.x-cell { color: #58a6ff; border-color: #58a6ff33; }
     .cell.o-cell { color: #f778ba; border-color: #f778ba33; }
 
-    .cell.pop {
-      animation: pop 0.2s ease;
-    }
+    .cell.pop { animation: pop 0.2s ease; }
     @keyframes pop {
-      0%   { transform: scale(0.85); }
+      0%   { transform: scale(0.8); }
       60%  { transform: scale(1.08); }
-      100% { transform: scale(1);    }
+      100% { transform: scale(1); }
     }
 
+    /* ── Status & Reset ── */
     #status {
       margin-top: 1.4rem;
       font-size: 0.8rem;
@@ -118,14 +190,86 @@
       letter-spacing: 0.08em;
       transition: border-color 0.2s, color 0.2s;
     }
+
     #reset:hover {
       border-color: #58a6ff;
       color: #58a6ff;
     }
+
+    /* ── Activity Log ── */
+    #log-section {
+    height: 9.4rem;
+      width: 100%;
+      max-width: 360px;
+      margin-top: 1.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 240px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    #log-section::-webkit-scrollbar { width: 4px; }
+    #log-section::-webkit-scrollbar-thumb {
+      background: #30363d;
+      border-radius: 4px;
+    }
+
+    .log-msg {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 10px;
+      padding: 0.45rem 0.75rem;
+      font-size: 0.78rem;
+      color: #8b949e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: fly-in 0.25s ease;
+    }
+
+    @keyframes fly-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-msg .log-alias {
+      font-weight: 700;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+
+    .log-msg .log-alias.x { color: #58a6ff; }
+    .log-msg .log-alias.o { color: #f778ba; }
+    .log-msg .log-alias.neutral { color: #8b949e; }
+
+    .log-msg .log-text {
+      flex: 1;
+    }
+
+    .log-msg .log-ts {
+      margin-left: auto;
+      flex-shrink: 0;
+      font-size: 0.68rem;
+      color: #484f58;
+      font-variant-numeric: tabular-nums;
+    }
   </style>
 </head>
 <body>
-  <h1>It's a tie!</h1>
+  <!-- Alias Modal -->
+  <div id="overlay">
+    <div id="alias-modal">
+      <h2>Welcome to XOXO</h2>
+      <p>Enter your alias to join the game</p>
+      <input id="alias-input" type="text" placeholder="Your nickname…" maxlength="18" autocomplete="off" />
+      <button id="alias-btn">Join game</button>
+    </div>
+  </div>
+
+  <!-- Game -->
+  <h1 id="game-title">It's a tie!</h1>
 
   <div id="board">
     <div class="cell" data-i="0"></div>
@@ -144,95 +288,168 @@
     <button class="pick-btn o"        data-team="O">O</button>
   </div>
 
-<script>
-  const db  = Gun(['https://gun.o8.is/gun']);
+  <!-- Activity Log -->
+  <div id="log-section"></div>
 
-  const state = Array(9).fill(null);
-  const grid = db.get('xo-demo-grid-v1');
+  <script>
+    /* ── GunDB setup ── */
+    const db   = Gun(['https://gun.o8.is/gun']);
+    const grid = db.get('xo-demo-grid-v1');
 
-  let team = 'X';
-  document.querySelectorAll('.pick-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      team = btn.dataset.team;
-      document.querySelectorAll('.pick-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+    /* ── State ── */
+    const state = Array(9).fill(null);
+    let team  = 'X';
+    let alias = '';
+
+    /* ── DOM refs ── */
+    const overlay    = document.getElementById('overlay');
+    const aliasInput = document.getElementById('alias-input');
+    const aliasBtn   = document.getElementById('alias-btn');
+    const gameTitle  = document.getElementById('game-title');
+    const cells      = document.querySelectorAll('.cell');
+    const logSection = document.getElementById('log-section');
+
+    /* ── Helpers ── */
+
+    // Label cells A1–C3 (col A–C, row 1–3)
+    const COLS = ['A', 'B', 'C'];
+    const ROWS = ['1', '2', '3'];
+    function cellName(i) {
+      return COLS[i % 3] + ROWS[Math.floor(i / 3)];
+    }
+
+    function nowStr() {
+      const d = new Date();
+      return [d.getHours(), d.getMinutes(), d.getSeconds()]
+        .map(n => String(n).padStart(2, '0'))
+        .join(':');
+    }
+
+    /* ── Activity Log ── */
+    function addLog(text, teamClass, aliasName) {
+      const div = document.createElement('div');
+      div.className = 'log-msg';
+      div.innerHTML =
+        `<span class="log-alias ${teamClass}">${escHtml(aliasName)}</span>` +
+        `<span class="log-text">${text}</span>` +
+        `<span class="log-ts">${nowStr()}</span>`;
+      logSection.prepend(div);
+      // Keep log from growing too long
+      while (logSection.children.length > 40) {
+        logSection.removeChild(logSection.lastChild);
+      }
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    /* ── Alias modal ── */
+    function confirmAlias() {
+      const val = aliasInput.value.trim();
+      if (!val) { aliasInput.focus(); return; }
+      alias = val;
+      overlay.style.display = 'none';
+      addLog('joined the game', 'neutral', alias);
+    }
+
+    aliasBtn.addEventListener('click', confirmAlias);
+    aliasInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') confirmAlias();
     });
-  });
 
-  const h1 = document.querySelector('h1');
-  const cells = document.querySelectorAll('.cell');
+    /* ── Team picker ── */
+    document.querySelectorAll('.pick-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        team = btn.dataset.team;
+        document.querySelectorAll('.pick-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
 
-  function renderCell(i, val) {
-    const el = cells[i];
-    el.textContent = val || '';
-    el.className   = 'cell' + (val ? ` ${val.toLowerCase()}-cell taken` : '');
-  }
+    /* ── Render helpers ── */
+    function renderCell(i, val) {
+      const el = cells[i];
+      el.textContent = val || '';
+      el.className   = 'cell' + (val ? ` ${val.toLowerCase()}-cell taken` : '');
+    }
 
-  function pop(i) {
-    cells[i].classList.remove('pop');
-    void cells[i].offsetWidth;
-    cells[i].classList.add('pop');
-  }
+    function pop(i) {
+      cells[i].classList.remove('pop');
+      void cells[i].offsetWidth; // force reflow
+      cells[i].classList.add('pop');
+    }
 
-  const LINES = [
-    [0,1,2],[3,4,5],[6,7,8],
-    [0,3,6],[1,4,7],[2,5,8],
-    [0,4,8],[2,4,6],
-  ];
+    /* ── Win check ── */
+    const LINES = [
+      [0,1,2], [3,4,5], [6,7,8],
+      [0,3,6], [1,4,7], [2,5,8],
+      [0,4,8], [2,4,6],
+    ];
 
-  function checkWinner() {
-    cells.forEach(c => c.classList.remove('win-cell'));
- 
-    for (const [a, b, c] of LINES) {
-      if (state[a] && state[a] === state[b] && state[a] === state[c]) {
-        const w = state[a];
-        h1.textContent = `Team ${w} is winning!`;
-        h1.style.color = w === 'X' ? '#58a6ff' : '#f778ba';
-        [a, b, c].forEach(i => cells[i].classList.add('win-cell'));
+    function checkWinner() {
+      cells.forEach(c => c.classList.remove('win-cell'));
+
+      for (const [a, b, c] of LINES) {
+        if (state[a] && state[a] === state[b] && state[a] === state[c]) {
+          const w = state[a];
+          gameTitle.textContent = `Team ${w} is winning!`;
+          gameTitle.style.color = w === 'X' ? '#58a6ff' : '#f778ba';
+          [a, b, c].forEach(i => cells[i].classList.add('win-cell'));
+          return;
+        }
+      }
+
+      const filled = state.filter(Boolean).length;
+      if (filled === 9) {
+        gameTitle.textContent = "It's a tie!";
+        gameTitle.style.color = '#8b949e';
         return;
       }
-    }
- 
-    const filled = state.filter(Boolean).length;
-    if (filled === 9) {
-      h1.textContent = "It's a tie!";
-      h1.style.color = '#8b949e';
-      return;
-    }
- 
-    const xs = state.filter(v => v === 'X').length;
-    const os = state.filter(v => v === 'O').length;
-    if (xs > os) { h1.textContent = 'Team X is winning!'; h1.style.color = '#58a6ff'; }
-    else if (os > xs) { h1.textContent = 'Team O is winning!'; h1.style.color = '#f778ba'; }
-    else { h1.textContent = "It's a tie!"; h1.style.color = 'white'; }
-  }
 
-  grid.on(data => {
-    for (let i = 0; i < 9; i++) {
-      const key = 'c' + i;
-      const incoming = data[key] === 'X' ? 'X' : data[key] === 'O' ? 'O' : null;
-      if (incoming !== state[i]) {
-        state[i] = incoming;
-        renderCell(i, incoming);
-        if (incoming) pop(i);
+      const xs = state.filter(v => v === 'X').length;
+      const os = state.filter(v => v === 'O').length;
+      if (xs > os)      { gameTitle.textContent = 'Team X is winning!'; gameTitle.style.color = '#58a6ff'; }
+      else if (os > xs) { gameTitle.textContent = 'Team O is winning!'; gameTitle.style.color = '#f778ba'; }
+      else              { gameTitle.textContent = "It's a tie!";        gameTitle.style.color = 'white'; }
+    }
+
+    /* ── GunDB sync ── */
+    grid.on(data => {
+      for (let i = 0; i < 9; i++) {
+        const key      = 'c' + i;
+        const incoming = data[key] === 'X' ? 'X' : data[key] === 'O' ? 'O' : null;
+        if (incoming !== state[i]) {
+          state[i] = incoming;
+          renderCell(i, incoming);
+          if (incoming) pop(i);
+        }
       }
-    }
-    checkWinner();
-  });
-
-  cells.forEach(el => {
-    el.addEventListener('click', () => {
-      const i = parseInt(el.dataset.i, 10);
-
-      const key = 'c' + i;
-      state[i] = team;
-      renderCell(i, team);
-      pop(i);
-
-      grid.put({ [key]: team });
+      checkWinner();
     });
-  });
-</script>
 
-  </body>
+    /* ── Cell click ── */
+    cells.forEach(el => {
+      el.addEventListener('click', () => {
+        if (!alias) {
+          overlay.style.display = 'flex';
+          aliasInput.focus();
+          return;
+        }
+
+        const i = parseInt(el.dataset.i, 10);
+
+        const key = 'c' + i;
+        state[i] = team;
+        renderCell(i, team);
+        pop(i);
+        grid.put({ [key]: team });
+
+        addLog(`played ${team} on ${cellName(i)}`, team.toLowerCase(), alias);
+        checkWinner();
+      });
+    });
+  </script>
+
+</body>
 </html>
