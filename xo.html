@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XO — GunDB Live</title>
+  <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0d1117;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #e6edf3;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #8b949e;
+      margin-bottom: 0.5rem;
+    }
+
+    #badge {
+      font-size: 0.85rem;
+      padding: 0.3rem 0.9rem;
+      border-radius: 999px;
+      margin-bottom: 1.6rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      transition: background 0.3s, color 0.3s;
+    }
+    #badge.x  { background: #1a3a5c; color: #58a6ff; border: 1px solid #58a6ff44; }
+    #badge.o  { background: #3a1a2c; color: #f778ba; border: 1px solid #f778ba44; }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, 110px);
+      grid-template-rows:    repeat(3, 110px);
+      gap: 10px;
+    }
+
+    .cell {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, border-color 0.15s;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cell:hover {
+      background: #1f2937;
+      border-color: #58a6ff44;
+      transform: scale(1.03);
+    }
+
+    .cell.taken {
+      cursor: default;
+    }
+    .cell.taken:hover {
+      transform: none;
+      background: #161b22;
+      border-color: #30363d;
+    }
+
+    .cell.x-cell { color: #58a6ff; border-color: #58a6ff33; }
+    .cell.o-cell { color: #f778ba; border-color: #f778ba33; }
+
+    .cell.pop {
+      animation: pop 0.2s ease;
+    }
+    @keyframes pop {
+      0%   { transform: scale(0.85); }
+      60%  { transform: scale(1.08); }
+      100% { transform: scale(1);    }
+    }
+
+    #status {
+      margin-top: 1.4rem;
+      font-size: 0.8rem;
+      color: #484f58;
+      letter-spacing: 0.05em;
+    }
+
+    #reset {
+      margin-top: 1.2rem;
+      padding: 0.45rem 1.4rem;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      background: transparent;
+      color: #8b949e;
+      font-size: 0.8rem;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    #reset:hover {
+      border-color: #58a6ff;
+      color: #58a6ff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>XO · GunDB</h1>
+  <div id="badge" class="x">You are — X</div>
+
+  <div id="board">
+    <div class="cell" data-i="0"></div>
+    <div class="cell" data-i="1"></div>
+    <div class="cell" data-i="2"></div>
+    <div class="cell" data-i="3"></div>
+    <div class="cell" data-i="4"></div>
+    <div class="cell" data-i="5"></div>
+    <div class="cell" data-i="6"></div>
+    <div class="cell" data-i="7"></div>
+    <div class="cell" data-i="8"></div>
+  </div>
+
+  <div id="status">connecting to relay…</div>
+  <button id="reset">Reset board</button>
+
+<script>
+  const db  = Gun(['https://gun.o8.is/gun']);
+  const grid = db.get('xo-demo-grid-v1');
+
+  const team  = Math.random() < 0.5 ? 'X' : 'O';
+  const badge = document.getElementById('badge');
+  badge.textContent = `You are — ${team}`;
+  badge.className   = team === 'X' ? 'x' : 'o';
+
+  const state = Array(9).fill(null);
+
+  const cells  = document.querySelectorAll('.cell');
+  const status = document.getElementById('#status' );
+  const statusEl = document.getElementById('status');
+
+  function renderCell(i, val) {
+    const el = cells[i];
+    el.textContent = val || '';
+    el.className   = 'cell' + (val ? ` ${val.toLowerCase()}-cell taken` : '');
+  }
+
+  function pop(i) {
+    cells[i].classList.remove('pop');
+    void cells[i].offsetWidth;
+    cells[i].classList.add('pop');
+  }
+
+  grid.on(data => {
+    statusEl.textContent = 'live — syncing via GunDB relay';
+    console.log('grid.on: ', data)
+    for (let i = 0; i < 9; i++) {
+      const key = 'c' + i;
+      const incoming = data[key] === 'X' ? 'X' : data[key] === 'O' ? 'O' : null;
+      if (incoming !== state[i]) {
+        state[i] = incoming;
+        renderCell(i, incoming);
+        if (incoming) pop(i);
+      }
+    }
+  });
+
+  cells.forEach(el => {
+    el.addEventListener('click', () => {
+      const i = parseInt(el.dataset.i, 10);
+      // if (state[i]) return;             // cell already taken
+
+      const key = 'c' + i;
+      state[i] = team;
+      renderCell(i, team);
+      pop(i);
+
+      grid.put({ [key]: team });
+    });
+  });
+
+  document.getElementById('reset').addEventListener('click', () => {
+    const patch = {};
+    for (let i = 0; i < 9; i++) patch['c' + i] = null;
+    grid.put(patch);
+  });
+</script>
+</body>
+</html>
